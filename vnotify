@@ -1,0 +1,59 @@
+#! /bin/sh
+
+# arguments:
+#   $1: text of message
+
+# same as [ $(command -v xxx) ]; &> does both in one
+W=200
+H=50
+SCREEN_WIDTH=1024
+if command -v xrandr >/dev/null 2>&1; then
+  SCREEN_RES=$(xrandr --current | grep '*' | uniq | awk '{print $1}')
+  SCREEN_WIDTH=${SCREEN_RES%x*}
+  SCREEN_HEIGHT=${SCREEN_RES#*x}
+elif command -v xwininfo >/dev/null 2>&1; then
+  #SCREEN_WIDTH=$(xwininfo -root | awk '$1=="Width:" {print $2}')
+  #SCREEN_HEIGHT=$(xwininfo -root | awk '$1=="Height:" {print $2}')
+  SCREEN_RES=$(xwininfo -root | awk '$1=="Width:" {w=$2}; $1=="Height:" {h=$2}; END {print w"x"h}')
+  SCREEN_WIDTH=${SCREEN_RES%x*}
+  SCREEN_HEIGHT=${SCREEN_RES#*x}
+# xdpyinfo gives whole desktop, even multi-monitor
+elif command -v xdpyinfo >/dev/null 2>&1; then
+  SCREEN_RES=$(xdpyinfo 2>/dev/null | grep "dimensions:" | sed -r 's/^[^0-9]*([0-9]+x[0-9]+).*$/\1/')
+  SCREEN_WIDTH=${SCREEN_RES%x*}
+  SCREEN_HEIGHT=${SCREEN_RES#*x}
+fi
+X=$(( $SCREEN_WIDTH - $W - 25 ))
+Y=25
+
+if command -v notify-send >/dev/null 2>&1; then
+  notify-send "Infonotify" "$1"
+elif command -v kdialog >/dev/null 2>&1; then
+  kdialog --passivepopup "$1" 10 2>/dev/null
+elif command -v yad >/dev/null 2>&1; then
+  yad --timeout=10 --no-buttons --title=Infonotify --width=$W --height=$H --posx=$X --posy=$Y --info --text="$1" #--text-align=center
+elif command -v zenity >/dev/null 2>&1 && command -v wmctrl >/dev/null 2>&1; then
+  X=$(( $X - 84 ))
+  (
+    (sleep 0.4; wmctrl -r Infonotify -R Infonotify -e 0,$X,$Y,-1,-1)
+    wmctrl -R Infonotify
+  ) | zenity --timeout=10 --ok-label=Close --title="Infonotify" --width=$W --height=$H --info --text="$1" --no-wrap 2>/dev/null
+elif command -v xmessage >/dev/null 2>&1 && command -v wmctrl >/dev/null 2>&1; then
+  (
+    (sleep 0.4; wmctrl -r xmessage -R xmessage -e 0,$X,$Y,$W,$H)
+    wmctrl -R xmessage
+  ) | xmessage -buttons "" " $1 " -timeout 10
+fi
+
+# LICENSE.TXT
+#
+# vnotify ("the software") - Copyright 2018 Paolo Marini. All rights reserved.
+# BY USING THE SOFTWARE, YOU ACCEPT THE TERMS BELOW. IF YOU DO NOT ACCEPT THEM, DO NOT USE THE SOFTWARE.
+# The author may terminate this agreement, or any portion thereof, at any time, for any reason whatsoever.
+# The author may change the terms and conditions of this agreement at any time, for any reason whatsoever.
+# If you comply with these license terms and conditions, you have the rights below.
+# 1. This agreement only gives you some rights to use the software. The author reserves all other rights.
+# 2. The software is free for both personal and commercial use. You may install and use it on your computers free of charge.
+# 3. You may redistribute the software as long as you do it free of charge and you don't misrepresent the origin of the software.
+# 4. You may not modify, adapt, rent, lease, loan, sell, or create derivative works based upon the software or any part thereof.
+# 5. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

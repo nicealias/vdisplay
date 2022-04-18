@@ -1,0 +1,46 @@
+#! /bin/sh
+
+# arguments:
+#   $1: info|warning|error
+#   $2: text of message
+
+# same as [ $(command -v xxx) ]; &> does both in one
+if command -v zenity >/dev/null 2>&1; then
+  case "$1" in
+    info)    zenity --info    --text="$2" --no-wrap 2> /dev/null; ;;
+    warning) zenity --warning --text="$2" --no-wrap 2> /dev/null; ;;
+    error)   zenity --error   --text="$2" --no-wrap 2> /dev/null; ;;
+  esac
+elif command -v kdialog >/dev/null 2>&1; then
+  case "$1" in
+    info)    kdialog --msgbox "$2"; ;;
+    warning) kdialog --sorry  "$2"; ;;
+    error)   kdialog --error  "$2"; ;;
+  esac
+elif command -v xmessage >/dev/null 2>&1; then
+  m="$(/bin/echo " $2 " | sed 's/\\n/ \\n /g')"
+  case "$1" in
+    info)    printf "$m"          | xmessage -center -buttons "OK" -file - 2> /dev/null; ;;
+    warning) printf "Warning: $m" | xmessage -center -buttons "OK" -file - 2> /dev/null; ;;
+    error)   printf "Error: $m"   | xmessage -center -buttons "OK" -file - 2> /dev/null; ;;
+  esac
+# else
+#   case "$1" in
+#     info)    echo "$2"; ;;
+#     warning) echo "Warning: $2"; ;;
+#     error)   echo "Error: $2"; ;;
+#   esac
+fi
+
+# LICENSE.TXT
+#
+# vmessage ("the software") - Copyright 2018 Paolo Marini. All rights reserved.
+# BY USING THE SOFTWARE, YOU ACCEPT THE TERMS BELOW. IF YOU DO NOT ACCEPT THEM, DO NOT USE THE SOFTWARE.
+# The author may terminate this agreement, or any portion thereof, at any time, for any reason whatsoever.
+# The author may change the terms and conditions of this agreement at any time, for any reason whatsoever.
+# If you comply with these license terms and conditions, you have the rights below.
+# 1. This agreement only gives you some rights to use the software. The author reserves all other rights.
+# 2. The software is free for both personal and commercial use. You may install and use it on your computers free of charge.
+# 3. You may redistribute the software as long as you do it free of charge and you don't misrepresent the origin of the software.
+# 4. You may not modify, adapt, rent, lease, loan, sell, or create derivative works based upon the software or any part thereof.
+# 5. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
